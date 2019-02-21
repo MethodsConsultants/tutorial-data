@@ -19,7 +19,7 @@ library(haven)
 
 # Tutorials Data
 
-The purpose of this repo is to document the creation of fake data used in the Methods Consultants tutorials.  This will provide full replicability as well as public access to the data files for users interested in playing around with other software.  The files can be accessed from [here](tree/master/data).
+The purpose of this repo is to document the creation of fake data used in the Methods Consultants tutorials.  This will provide full replicability as well as public access to the data files for users interested in playing around with other software.  The files can be accessed from [here](https://github.com/jeralbri/tutorial-data/tree/master/data).
 
 
 ## t-tests
