@@ -1,21 +1,33 @@
-Fake Data Generation
-================
-Jeremy Albright
-21 February, 2019
+---
+title: "Fake Data Generation"
+author: "Jeremy Albright"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  github_document:
+    df_print: kable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(haven)
+
+```
 
 # Tutorials Data
 
-The purpose of this repo is to document the creation of fake data used
-in the Methods Consultants tutorials. This will provide full
-replicability as well as public access to the data files for users
-interested in playing around with other software. The files can be
-accessed from [here](%22data%22).
+The purpose of this repo is to document the creation of fake data used in the Methods Consultants tutorials.  This will provide full replicability as well as public access to the data files for users interested in playing around with other software.  The files can be accessed from [here]("data").
+
 
 ## t-tests
 
-The t-test tutorials rely on fake IQ scores generated as follows:
+The t-test tutorials rely on fake IQ scores generated as follows: 
 
-``` r
+```{r}
+
 set.seed(12345)
 gender <- rbinom(100, size = 1, p = .5)
 
@@ -29,25 +41,13 @@ iq    <- tibble(id = rep(1:100, 2),
 
 
 head(iq)
+
 ```
 
-<div class="kable-table">
+The one-sample and independent samples $t$-test assume that the 200 observations are independent.  Create this file and save as an SPSS file.
 
-| id | gender | time   |     iq |
-| -: | :----- | :----- | -----: |
-|  1 | Female | Time 1 |  93.89 |
-|  2 | Female | Time 1 | 131.22 |
-|  3 | Female | Time 1 | 102.80 |
-|  4 | Female | Time 1 | 107.27 |
-|  5 | Male   | Time 1 |  89.94 |
-|  6 | Male   | Time 1 | 104.17 |
+```{r}
 
-</div>
-
-The one-sample and independent samples \(t\)-test assume that the 200
-observations are independent. Create this file and save as an SPSS file.
-
-``` r
 iq %>%
   mutate(id = row_number()) %>% 
   select(id, gender, iq) %>%
@@ -55,12 +55,13 @@ iq %>%
                       gender = "Gender",
                       iq     = "IQ") %>%
   write_sav("data/iq_long.sav")
+
 ```
 
-The paired samples t-test assumes the data come from 100 paired
-observations. Create this file in wide format in SPSS.
+The paired samples t-test assumes the data come from 100 paired observations.  Create this file in wide format in SPSS.
 
-``` r
+```{r}
+
 iq %>%
   select(id, time, iq) %>%
   spread(time, iq) %>%
@@ -69,4 +70,6 @@ iq %>%
                       Time_1 = "IQ at Time 1",
                       Time_2 = "IQ at Time 2") %>%
   write_sav("data/iq_wide.sav")
+
 ```
+
