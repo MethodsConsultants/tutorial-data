@@ -45,8 +45,9 @@ head(iq)
 
 </div>
 
-The one-sample and independent samples t-test assume that the 200
-observations are independent. Create this file and save as an SPSS file.
+The one-sample and independent samples t-test examples assume that the
+200 observations are independent. Create this file and save as an SPSS
+file.
 
 ``` r
 iq %>%
@@ -58,7 +59,7 @@ iq %>%
   write_sav("data/iq_long.sav")
 ```
 
-The paired samples t-test assumes the data come from 100 paired
+The paired samples t-test example assumes the data come from 100 paired
 observations. Create this file in wide format in SPSS.
 
 ``` r
