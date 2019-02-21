@@ -9,7 +9,7 @@ The purpose of this repo is to document the creation of fake data used
 in the Methods Consultants tutorials. This will provide full
 replicability as well as public access to the data files for users
 interested in playing around with other software. The files can be
-accessed from [here](%22data%22).
+accessed from [here](tree/master/data).
 
 ## t-tests
 
@@ -44,7 +44,7 @@ head(iq)
 
 </div>
 
-The one-sample and independent samples \(t\)-test assume that the 200
+The one-sample and independent samples t-test assume that the 200
 observations are independent. Create this file and save as an SPSS file.
 
 ``` r
