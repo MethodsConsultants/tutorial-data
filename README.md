@@ -1,7 +1,7 @@
 Fake Data Generation
 ================
 Jeremy Albright
-07 May, 2019
+14 June, 2019
 
 # Tutorials Data
 
@@ -73,6 +73,12 @@ iq %>%
   write_sav("data/iq_wide.sav")
 ```
 
+## ANOVA
+
+The ANOVA data are fake data generated years ago for a class I taught.
+The code (and random seed) are long gone, but the file remains. It’s
+saved in this repo as an SPSS file, `anova.sav`.
+
 ## Cross-Sectional Mixed (Multilevel) Models
 
 Replicating the results from Raudenbush and Bryk’s (2002) textbok
@@ -93,9 +99,8 @@ write_dta(hsb, "data/hsb.dta")
 The 2016 American National Election Studies data are used in multiple
 blog posts and tutorials. Accessing the original data requires
 [registering](https://electionstudies.org/data-center/) to agree to the
-terms of use. Assuming you have registered, downloaded the data in SPSS
-format, and saved the file locally to the `data` directory, the
-following syntax will prepare the data for the analysis we present.
+terms of use (no fee, no annoying emails). Assuming you have registered,
+the following syntax will prepare the data for the analysis we present.
 
 ``` r
 anes <- read_sav("data/anes_timeseries_2016.sav") 
@@ -164,29 +169,166 @@ anes <- anes %>%
          sex_orient     = V161511,
          vote           = V162034a 
          ) %>%
-  mutate_at(vars(-starts_with("therm")), ~as_factor(.))
-```
-
-``` r
   filter(vote %in% c(1,2) & gender %in% c(1,2)) %>%
   mutate(vote = factor(vote, levels = 1:2, labels = c("Clinton", "Trump")),
          educ = case_when(
-           V161270 %in% 1:8 ~ 1,
-           V161270 %in% 9 ~ 2,
-           V161270 %in% 10:12 ~ 3,
-           V161270 %in% 13 ~ 4,
-           V161270 %in% 14:16 ~ 5,
+           educ %in% 1:8 ~ 1,
+           educ %in% 9 ~ 2,
+           educ %in% 10:12 ~ 3,
+           educ %in% 13 ~ 4,
+           educ %in% 14:16 ~ 5,
            TRUE ~ -999),
          gender = factor(gender, levels = 1:2, labels = c("Male", "Female"))) %>%
   mutate(educ = factor(educ, level = 1:5, labels = c("HS Not Completed",
                                                      "Completed HS",
                                                      "College < 4 Years",
                                                      "College 4 Year Degree",
-                                                     "Advanced Degree"))) %>%
-  filter(!is.na(educ) & age >= 18) %>%
-  dplyr::select(-V161270)
+                                                     "Advanced Degree"))) %>% 
+  mutate_at(vars(-starts_with("therm"), age, vote, educ, gender), ~as_factor(.)) %>% 
+  mutate(income = fct_recode(income, NULL = "-9. Refused",
+                             NULL = "-5. Interview breakoff (sufficient partial IW)")) %>% 
+  mutate(income_cont = substr(as.character(income), 1, 2)) %>% 
+  mutate(educ_cont = as.numeric(educ))
 ```
 
-Note that all of the questions with the exception of the actual vote
-were taken from the pre survey. If modeling the vote, use the
-`post_weight` to account for attrition, otherwise use `pre_weight`.
+Save the cleaned data file.
+
+``` r
+write_sav(anes, "data/cleaned-anes.sav")
+```
+
+## Latent Variable Models
+
+The CFA and SEM examples in the tutorials use the illustrations from
+Bollen’s (1989) classic textbook, *Structural Equations with Latent
+Variables*, which, after thirty years, remains among the best resources
+for understanding SEM estimators. The CFA example is based on eight
+indicators of political democracy. Page 239 provides the necessary
+summary statistics. SEM can of course be conducted using just means and
+covariances, but in most applied settings researchers use the full
+microdata. Assuming that the variables are mean centered, and hence all
+means are zero, we can generate a fake data file consistent with the
+summary
+statistics.
+
+#### Bollen’s CFA Example
+
+``` r
+cfa_corrs <- matrix(c(1.00, 0.604, 0.679, 0.693, 0.739, 0.650, 0.674, 0.666,
+                      0.604, 1.00, 0.451, 0.719, 0.543, 0.705, 0.581, 0.606,
+                      0.679, 0.451, 1.00, 0.609, 0.576, 0.427, 0.650, 0.530,
+                      0.693, 0.719, 0.609, 1.00, 0.652, 0.659, 0.680, 0.737,
+                      0.739, 0.543, 0.576, 0.652, 1.00, 0.565, 0.678, 0.630,
+                      0.650, 0.705, 0.427, 0.659, 0.565, 1.00, 0.609, 0.753,
+                      0.674, 0.581, 0.650, 0.680, 0.678, 0.609, 1.00, 0.712,
+                      0.666, 0.606, 0.530, 0.737, 0.630, 0.753, 0.712, 1.00), 
+                    byrow = T, ncol = 8)
+
+cfa_sds <- c(2.623, 3.947, 3.281, 3.349, 2.613, 3.373, 3.286, 3.246)
+
+cfa_covs <- diag(cfa_sds)%*%cfa_corrs%*%diag(cfa_sds)
+
+cfa_mns <- rep(0, 8)
+
+cfa_tbl <- MASS::mvrnorm(n = 75, mu = cfa_mns, Sigma = cfa_covs, 
+                         empirical = T) %>% 
+  as.data.frame() %>% 
+  rename_all(~str_replace(.x, "V", "x"))
+```
+
+Check that the descriptives are close to the original:
+
+``` r
+#------ Should all be near zero
+map_dbl(cfa_tbl, mean)
+```
+
+    ##            x1            x2            x3            x4            x5 
+    ## -1.171336e-17  3.716645e-18 -2.065232e-16  1.783007e-17  1.795439e-17 
+    ##            x6            x7            x8 
+    ## -3.225140e-17 -5.194919e-17  1.780983e-18
+
+``` r
+#------ Should be near correlation in prior chunk
+cor(cfa_tbl)
+```
+
+    ##       x1    x2    x3    x4    x5    x6    x7    x8
+    ## x1 1.000 0.604 0.679 0.693 0.739 0.650 0.674 0.666
+    ## x2 0.604 1.000 0.451 0.719 0.543 0.705 0.581 0.606
+    ## x3 0.679 0.451 1.000 0.609 0.576 0.427 0.650 0.530
+    ## x4 0.693 0.719 0.609 1.000 0.652 0.659 0.680 0.737
+    ## x5 0.739 0.543 0.576 0.652 1.000 0.565 0.678 0.630
+    ## x6 0.650 0.705 0.427 0.659 0.565 1.000 0.609 0.753
+    ## x7 0.674 0.581 0.650 0.680 0.678 0.609 1.000 0.712
+    ## x8 0.666 0.606 0.530 0.737 0.630 0.753 0.712 1.000
+
+Save data.
+
+``` r
+write_sav(cfa_tbl, "data/bollen_cfa.sav")
+```
+
+#### Bollen’s SEM Example
+
+Page 334 of Bollen (1989) contains means and the covariance matrix for
+the example used to illustrate a full SEM with latent variables. We’ll
+again create a microdata file consistent with these sufficient
+statistics.
+
+``` r
+sem_covs <- matrix(c(6.89, 6.25, 5.84, 6.09, 5.06, 5.75, 5.81, 5.67, 0.73, 1.27, 0.91,
+                     6.25, 15.58, 5.84, 9.51, 5.60, 9.39, 7.54, 7.76, 0.62, 1.49, 1.17,
+                     5.84, 5.84, 10.76, 6.69, 4.94, 4.73, 7.01, 5.64, 0.79, 1.55, 1.04,
+                     6.09, 9.51, 6.69, 11.22, 5.70, 7.44, 7.49, 8.01, 1.15, 2.24, 1.84,
+                     5.06, 5.60, 4.94, 5.70, 6.83, 4.98, 5.82, 5.34, 1.08, 2.06, 1.58,
+                     5.75, 9.39, 4.73, 7.44, 4.98, 11.38, 6.75, 8.25, 0.85, 1.81, 1.57,
+                     5.81, 7.54, 7.01, 7.49, 5.82, 6.75, 10.80, 7.59, 0.94, 2.00, 1.63,
+                     5.67, 7.76, 5.64, 8.01, 5.34, 8.25, 7.59, 10.53, 1.10, 2.23, 1.69,
+                     0.73, 0.62, 0.79, 1.15, 1.08, 0.85, 0.94, 1.10, 0.54, 0.99, 0.82,
+                     1.27, 1.49, 1.55, 2.24, 2.06, 1.81, 2.00, 2.23, 0.99, 2.28, 1.81,
+                     0.91, 1.17, 1.04, 1.84, 1.58, 1.57, 1.63, 1.69, 0.82, 1.81, 1.98),
+                   byrow = T, ncol = 11)
+
+sem_mns <- c(5.46, 4.26, 6.56, 4.45, 5.14, 2.98, 6.20, 4.04, 5.05, 4.79, 3.56)
+
+sem_tbl <- MASS::mvrnorm(n = 75, mu = sem_mns, Sigma = sem_covs, 
+                         empirical = T) %>% 
+  as.data.frame() %>% 
+  rename_all(~str_replace(.x, "V", "y")) %>% 
+  rename(x1 = y9, x2 = y10, x3 = y11)
+```
+
+Check the descriptives are close to the original:
+
+``` r
+#------ Should match means from prior chunk
+map_dbl(sem_tbl, mean)
+```
+
+    ##   y1   y2   y3   y4   y5   y6   y7   y8   x1   x2   x3 
+    ## 5.46 4.26 6.56 4.45 5.14 2.98 6.20 4.04 5.05 4.79 3.56
+
+``` r
+#------ Should be near covariance matrix in prior chunk
+cov(sem_tbl)
+```
+
+    ##      y1    y2    y3    y4   y5    y6    y7    y8   x1   x2   x3
+    ## y1 6.89  6.25  5.84  6.09 5.06  5.75  5.81  5.67 0.73 1.27 0.91
+    ## y2 6.25 15.58  5.84  9.51 5.60  9.39  7.54  7.76 0.62 1.49 1.17
+    ## y3 5.84  5.84 10.76  6.69 4.94  4.73  7.01  5.64 0.79 1.55 1.04
+    ## y4 6.09  9.51  6.69 11.22 5.70  7.44  7.49  8.01 1.15 2.24 1.84
+    ## y5 5.06  5.60  4.94  5.70 6.83  4.98  5.82  5.34 1.08 2.06 1.58
+    ## y6 5.75  9.39  4.73  7.44 4.98 11.38  6.75  8.25 0.85 1.81 1.57
+    ## y7 5.81  7.54  7.01  7.49 5.82  6.75 10.80  7.59 0.94 2.00 1.63
+    ## y8 5.67  7.76  5.64  8.01 5.34  8.25  7.59 10.53 1.10 2.23 1.69
+    ## x1 0.73  0.62  0.79  1.15 1.08  0.85  0.94  1.10 0.54 0.99 0.82
+    ## x2 1.27  1.49  1.55  2.24 2.06  1.81  2.00  2.23 0.99 2.28 1.81
+    ## x3 0.91  1.17  1.04  1.84 1.58  1.57  1.63  1.69 0.82 1.81 1.98
+
+Save data.
+
+``` r
+write_sav(sem_tbl, "data/bollen_sem.sav")
+```
