@@ -1,7 +1,7 @@
 Fake Data Generation
 ================
 Jeremy Albright
-18 June, 2019
+17 October, 2019
 
 # Tutorials Data
 
@@ -46,38 +46,92 @@ head(iq)
 </div>
 
 The one-sample and independent samples t-test examples assume that the
-200 observations are independent. Create this file and save as an SPSS
-file.
+200 observations are independent. Create this file and save as an SPSS,
+SAS, and Stata file.
 
 ``` r
-iq %>%
+iq_long <- iq %>%
   mutate(id = row_number()) %>% 
   select(id, gender, iq) %>%
   expss::apply_labels(id     = "Subject ID",
                       gender = "Gender",
-                      iq     = "IQ") %>%
+                      iq     = "IQ") 
+
+iq_long %>%
   write_sav("data/iq_long.sav")
+
+iq_long %>% 
+  write_sas("data/iq_long.sas7bdat")
+
+iq_long %>% 
+  write_dta("data/iq_long.dta")
 ```
 
 The paired samples t-test example assumes the data come from 100 paired
 observations. Create this file in wide format in SPSS.
 
 ``` r
-iq %>%
+iq_wide <- iq %>%
   select(id, time, iq) %>%
   spread(time, iq) %>%
   rename(Time_1 = `Time 1`, Time_2 = `Time 2`) %>%
   expss::apply_labels(id     = "Subject ID",
                       Time_1 = "IQ at Time 1",
-                      Time_2 = "IQ at Time 2") %>%
+                      Time_2 = "IQ at Time 2") 
+
+iq_wide %>%
   write_sav("data/iq_wide.sav")
+
+iq_wide %>% 
+  write_sas("data/iq_wide.sas7bdat")
+
+iq_wide %>% 
+  write_dta("data/iq_wide.dta")
 ```
 
-## ANOVA
+## One-Way ANOVA
 
-The ANOVA data are fake data generated years ago for a class I taught.
-The code (and random seed) are long gone, but the file remains. It’s
-saved in this repo as an SPSS file, `anova.sav`.
+The ANOVA data are fake data generated years ago for a university
+course. The code (and random seed) are long gone, but the file remains.
+It’s saved in this repo as an SPSS file, `anova.sav`. To transform to a
+SAS and Stata file:
+
+``` r
+anova <- read_spss("data/anova.sav")
+
+anova %>% 
+  write_sas("data/anova.sas7bdat")
+
+anova %>% 
+  write_dta("data/anova.dta")
+```
+
+## Two-Way ANOVA
+
+The data used for the two-way factorial ANOVA are available in the
+`carData` package. Create SPSS, SAS, and Stata versions:
+
+``` r
+library(carData)
+
+Moore <- Moore %>% 
+  mutate(partner.status = fct_relevel(partner.status, c("low",
+                                                        "high")),
+         fcategory      = fct_relevel(fcategory, c("low",
+                                                   "medium",
+                                                   "high")))
+
+Moore %>% 
+  write_sav("data/moore.sav")
+
+Moore  %>% 
+  dplyr::rename(partner_status = partner.status) %>% 
+  write_sas("data/moore.sas7bdat")
+
+Moore %>% 
+  dplyr::rename(partner_status = partner.status) %>% 
+  write_dta("data/moore.dta")
+```
 
 ## Cross-Sectional Mixed (Multilevel) Models
 
@@ -90,6 +144,8 @@ examples in both SPSS and Stata.
 library(merTools)
 
 write_sav(hsb, "data/hsb.sav")
+
+write_sas(hsb, "data/hsb.sas7bdat")
 
 write_dta(hsb, "data/hsb.dta")
 ```
