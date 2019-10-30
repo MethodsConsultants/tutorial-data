@@ -158,7 +158,8 @@ The 2016 American National Election Studies data are used in multiple blog posts
 
 ```{r}
 
-anes <- read_sav("data/anes_timeseries_2016.sav") 
+anes <- read_delim("data/anes_timeseries_2016_rawdata.txt",
+                   delim = "|", guess_max = 5000) 
 
 anes <- anes %>%
   select(pre_weight     = V160101,
@@ -252,6 +253,10 @@ Save the cleaned data file.
 ```{r, eval = F}
 
 write_sav(anes, "data/cleaned-anes.sav")
+
+write_dta(anes, "data/cleaned-anes.dta")
+
+write_sas(anes, "data/cleaned-anes.sas7bdat")
 
 ```
 
