@@ -1,5 +1,5 @@
 ---
-title: "Fake Data Generation"
+title: "Example Data Generation"
 author: "Jeremy Albright"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
@@ -225,6 +225,7 @@ anes <- anes %>%
          sex_orient     = V161511,
          vote           = V162034a 
          ) %>%
+  mutate_if(is.character, as.numeric) %>% 
   filter(vote %in% c(1,2) & gender %in% c(1,2)) %>%
   mutate(vote = factor(vote, levels = 1:2, labels = c("Clinton", "Trump")),
          educ = case_when(

@@ -1,4 +1,4 @@
-Fake Data Generation
+Example Data Generation
 ================
 Jeremy Albright
 30 October, 2019
@@ -256,6 +256,7 @@ anes <- anes %>%
          sex_orient     = V161511,
          vote           = V162034a 
          ) %>%
+  mutate_if(is.character, as.numeric) %>% 
   filter(vote %in% c(1,2) & gender %in% c(1,2)) %>%
   mutate(vote = factor(vote, levels = 1:2, labels = c("Clinton", "Trump")),
          educ = case_when(
