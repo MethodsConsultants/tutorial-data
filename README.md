@@ -1,7 +1,7 @@
 Fake Data Generation
 ================
 Jeremy Albright
-17 October, 2019
+30 October, 2019
 
 # Tutorials Data
 
@@ -159,8 +159,39 @@ terms of use (no fee, no annoying emails). Assuming you have registered,
 the following syntax will prepare the data for the analysis we present.
 
 ``` r
-anes <- read_sav("data/anes_timeseries_2016.sav") 
+anes <- read_delim("data/anes_timeseries_2016_rawdata.txt",
+                   delim = "|", guess_max = 5000) 
+```
 
+    ## Parsed with column specification:
+    ## cols(
+    ##   .default = col_character(),
+    ##   V160001 = col_double(),
+    ##   V160101 = col_double(),
+    ##   V160101f = col_double(),
+    ##   V160101w = col_double(),
+    ##   V160102 = col_double(),
+    ##   V160102f = col_double(),
+    ##   V160102w = col_double(),
+    ##   V160202 = col_double(),
+    ##   V160202f = col_double(),
+    ##   V160202w = col_double(),
+    ##   V160501 = col_double(),
+    ##   V160502 = col_double(),
+    ##   V161003 = col_double(),
+    ##   V161004 = col_double(),
+    ##   V161010a = col_double(),
+    ##   V161010b = col_double(),
+    ##   V161010c = col_double(),
+    ##   V161024x = col_double(),
+    ##   V161025x = col_double(),
+    ##   V161029a = col_double()
+    ##   # ... with 142 more columns
+    ## )
+
+    ## See spec(...) for full column specifications.
+
+``` r
 anes <- anes %>%
   select(pre_weight     = V160101,
          post_weight    = V160102,
@@ -251,6 +282,10 @@ Save the cleaned data file.
 
 ``` r
 write_sav(anes, "data/cleaned-anes.sav")
+
+write_dta(anes, "data/cleaned-anes.dta")
+
+write_sas(anes, "data/cleaned-anes.sas7bdat")
 ```
 
 ## Latent Variable Models
