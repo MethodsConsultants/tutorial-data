@@ -277,7 +277,7 @@ anes <- anes %>%
 
 Save the cleaned data file.
 
-```{r, eval = T}
+```{r, eval = F}
 
 write_sav(anes, "data/cleaned-anes.sav")
 
