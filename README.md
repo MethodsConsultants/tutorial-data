@@ -1,7 +1,7 @@
-Fake Data Generation
+Example Data Generation
 ================
 Jeremy Albright
-30 October, 2019
+14 November, 2019
 
 # Tutorials Data
 
@@ -256,7 +256,10 @@ anes <- anes %>%
          sex_orient     = V161511,
          vote           = V162034a 
          ) %>%
-  filter(vote %in% c(1,2) & gender %in% c(1,2)) %>%
+  mutate_if(is.character, as.numeric) %>% 
+  mutate(income = if_else(income < 1, NA_real_, income),
+         age    = if_else(age    < 1, NA_real_, age)) %>% 
+  filter(vote %in% c(1,2) & gender %in% c(1,2)) %>% # only 11 non-binary, too small for inference
   mutate(vote = factor(vote, levels = 1:2, labels = c("Clinton", "Trump")),
          educ = case_when(
            educ %in% 1:8 ~ 1,
@@ -271,10 +274,34 @@ anes <- anes %>%
                                                      "College < 4 Years",
                                                      "College 4 Year Degree",
                                                      "Advanced Degree"))) %>% 
-  mutate_at(vars(-starts_with("therm"), age, vote, educ, gender), ~as_factor(.)) %>% 
-  mutate(income = fct_recode(income, NULL = "-9. Refused",
-                             NULL = "-5. Interview breakoff (sufficient partial IW)")) %>% 
-  mutate(income_cont = substr(as.character(income), 1, 2)) %>% 
+  mutate(income = factor(income, levels = 1:28, labels = c("Under $5,000",
+                                                           "$5,000-$9,999",  
+                                                           "$10,000-$12,499",
+                                                           "$12,500-$14,999",
+                                                           "$15,000-$17,499",
+                                                           "$17,500-$19,999",
+                                                           "$20,000-$22,499",
+                                                           "$22,500-$24,999",
+                                                           "$25,000-$27,499",
+                                                           "$27,500-$29,999",
+                                                           "$30,000-$34,999",
+                                                           "$35,000-$39,999",
+                                                           "$40,000-$44,999",
+                                                           "$45,000-$49,999",
+                                                           "$50,000-$54,999",
+                                                           "$55,000-$59,999",
+                                                           "$60,000-$64,999",
+                                                           "$65,000-$69,999",
+                                                           "$70,000-$74,999",
+                                                           "$75,000-$79,999",
+                                                           "$80,000-$89,999",
+                                                           "$90,000-$99,999",
+                                                           "$100,000-$109,999",
+                                                           "$110,000-$124,999",
+                                                           "$125,000-$149,999",
+                                                           "$150,000-$174,999",
+                                                           "$175,000-$249,999",
+                                                           "$250,000 or more"))) %>% 
   mutate(educ_cont = as.numeric(educ))
 ```
 
