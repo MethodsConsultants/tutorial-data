@@ -1,7 +1,7 @@
 Example Data Generation
 ================
 Jeremy Albright
-14 November, 2019
+08 January, 2020
 
 # Tutorials Data
 
@@ -31,19 +31,6 @@ iq    <- tibble(id = rep(1:100, 2),
 
 head(iq)
 ```
-
-<div class="kable-table">
-
-| id | gender | time   |     iq |
-| -: | :----- | :----- | -----: |
-|  1 | Female | Time 1 |  93.89 |
-|  2 | Female | Time 1 | 131.22 |
-|  3 | Female | Time 1 | 102.80 |
-|  4 | Female | Time 1 | 107.27 |
-|  5 | Male   | Time 1 |  89.94 |
-|  6 | Male   | Time 1 | 104.17 |
-
-</div>
 
 The one-sample and independent samples t-test examples assume that the
 200 observations are independent. Create this file and save as an SPSS,
@@ -161,37 +148,7 @@ the following syntax will prepare the data for the analysis we present.
 ``` r
 anes <- read_delim("data/anes_timeseries_2016_rawdata.txt",
                    delim = "|", guess_max = 5000) 
-```
 
-    ## Parsed with column specification:
-    ## cols(
-    ##   .default = col_character(),
-    ##   V160001 = col_double(),
-    ##   V160101 = col_double(),
-    ##   V160101f = col_double(),
-    ##   V160101w = col_double(),
-    ##   V160102 = col_double(),
-    ##   V160102f = col_double(),
-    ##   V160102w = col_double(),
-    ##   V160202 = col_double(),
-    ##   V160202f = col_double(),
-    ##   V160202w = col_double(),
-    ##   V160501 = col_double(),
-    ##   V160502 = col_double(),
-    ##   V161003 = col_double(),
-    ##   V161004 = col_double(),
-    ##   V161010a = col_double(),
-    ##   V161010b = col_double(),
-    ##   V161010c = col_double(),
-    ##   V161024x = col_double(),
-    ##   V161025x = col_double(),
-    ##   V161029a = col_double()
-    ##   # ... with 142 more columns
-    ## )
-
-    ## See spec(...) for full column specifications.
-
-``` r
 anes <- anes %>%
   select(pre_weight     = V160101,
          post_weight    = V160102,
@@ -329,4 +286,52 @@ library(sem)
 data("Bollen")
 
 write_sav(Bollen, "data/bollen_sem.sav")
+```
+
+## GSS Data
+
+The GSS data have been helpfully organized into an R package by [Kieran
+Healy](https://kjhealy.github.io/gssr/). It can be installed directly
+from Github as follows:
+
+``` r
+devtools::install_github("kjhealy/gssr")
+```
+
+    ## Skipping install of 'gssr' from a github remote, the SHA1 (d70b1caa) has not changed since last install.
+    ##   Use `force = TRUE` to force installation
+
+Load data.
+
+``` r
+library(gssr)
+```
+
+    ## Package loaded. To attach the GSS data, type data(gss_all) at the console.
+    ## For the codebook, type data(gss_doc). The gss_all and gss_doc objects will then be available to use.
+
+``` r
+data(gss_all)
+```
+
+For the analysis of sexual behavior by party identification and
+religion, filter to `year == 2018` and save the following variables:
+
+  - vstrat: Variance Stratum
+  - vpsu: Variance PSU
+  - wtssall: Weight
+  - partnrs5: Number of sex partners last five years
+  - partyid: party identification (0 = strong democrdat, 6 = strong
+    republican, 7 = other party)
+  - feelrel: how religious are you? (1 = extremely religious, 7 =
+    extremely non-religious)
+  - sex: sex (1 = male, 2 = female)
+
+Save as `.rds` file.
+
+``` r
+gss_all %>% 
+  filter(year == 2018) %>% 
+  select(vstrat, vpsu, wtssall, partnrs5, partyid, feelrel, sex) %>% 
+  saveRDS("data/gss_sex.rds")
 ```
