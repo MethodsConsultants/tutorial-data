@@ -27,7 +27,7 @@ The purpose of this repo is to document the creation of fake data used in the Me
 
 The t-test tutorials rely on fake IQ scores generated as follows: 
 
-```{r}
+```{r, eval = F}
 
 set.seed(12345)
 gender <- rbinom(100, size = 1, p = .5)
@@ -156,7 +156,7 @@ write_dta(hsb, "data/hsb.dta")
 
 The 2016 American National Election Studies data are used in multiple blog posts and tutorials.  Accessing the original data requires [registering](https://electionstudies.org/data-center/) to agree to the terms of use (no fee, no annoying emails).  Assuming you have registered, the following syntax will prepare the data for the analysis we present.
 
-```{r}
+```{r, eval = F}
 
 anes <- read_delim("data/anes_timeseries_2016_rawdata.txt",
                    delim = "|", guess_max = 5000) 
@@ -300,3 +300,44 @@ data("Bollen")
 write_sav(Bollen, "data/bollen_sem.sav")
 
 ```
+
+## GSS Data
+
+The GSS data have been helpfully organized into an R package by [Kieran Healy](https://kjhealy.github.io/gssr/). It can be installed directly from Github as follows:
+
+```{r}
+
+devtools::install_github("kjhealy/gssr")
+
+```
+
+Load data.
+
+```{r}
+
+library(gssr)
+data(gss_all)
+
+```
+
+For the analysis of sexual behavior by party identification and religion, filter to `year == 2018` and save the following variables:
+
+- vstrat:   Variance Stratum
+- vpsu:     Variance PSU
+- wtssall:  Weight
+- partnrs5: Number of sex partners last five years
+- partyid:  party identification (0 = strong democrdat, 6 = strong republican, 7 = other party)
+- feelrel:  how religious are you? (1 = extremely religious, 7 = extremely non-religious)
+- sex:      sex (1 = male, 2 = female)
+
+Save as `.rds` file.
+
+```{r}
+
+gss_all %>% 
+  filter(year == 2018) %>% 
+  select(vstrat, vpsu, wtssall, partnrs5, partyid, feelrel, sex) %>% 
+  saveRDS("data/gss_sex.rds")
+
+```
+
