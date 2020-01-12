@@ -1,7 +1,7 @@
 Example Data Generation
 ================
 Jeremy Albright
-08 January, 2020
+12 January, 2020
 
 # Tutorials Data
 
@@ -298,19 +298,10 @@ from Github as follows:
 devtools::install_github("kjhealy/gssr")
 ```
 
-    ## Skipping install of 'gssr' from a github remote, the SHA1 (d70b1caa) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
-
 Load data.
 
 ``` r
 library(gssr)
-```
-
-    ## Package loaded. To attach the GSS data, type data(gss_all) at the console.
-    ## For the codebook, type data(gss_doc). The gss_all and gss_doc objects will then be available to use.
-
-``` r
 data(gss_all)
 ```
 
@@ -334,4 +325,70 @@ gss_all %>%
   filter(year == 2018) %>% 
   select(vstrat, vpsu, wtssall, partnrs5, partyid, feelrel, sex) %>% 
   saveRDS("data/gss_sex.rds")
+```
+
+## Regression
+
+The data for the regression examples come from the replication materials
+for DiGrazia, J. McKelvey, K. Bollen, J. Rojas, F. More Tweets, More
+Votes: Social Media as a Quantitative Indicator of Political Behavior.
+PLoS ONE. November 2013. The original files are available
+[here](http://dx.doi.org/10.7910/DVN/23103) and were accessed January
+12, 2020.
+
+The data were collected to assess whether Twitter mentions of candidates
+in the 2010 and 2012 US Congressional elections were associated with the
+candidates’ electoral performance. The data will be used to demonstrate
+how to perform regression analysis in common statistical software. The
+results in the tutorials are not to be taken as a commentary on the
+article, nor as having been endorsed by the authors of the original
+study.
+
+The data come in csv format. The first column is the row number and can
+be dropped.
+
+``` r
+twitter_tbl <- read_csv("data/mtmv_data_10_12.csv") %>% 
+  select(-X1)
+```
+
+    ## Warning: Missing column names filled in: 'X1' [1]
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   .default = col_double()
+    ## )
+
+    ## See spec(...) for full column specifications.
+
+The original article included a control for district partisanship using
+the district’s vote share for John McCain in the 2008 presidential
+election. To demonstrate the use of dummy variables, this variable will
+be converted into tertiles.
+
+``` r
+twitter_tbl <- twitter_tbl %>% 
+  mutate(mccain_tert = gtools::quantcut(mccain, q = 3)) %>% 
+  mutate(mccain_tert = factor(as.numeric(mccain_tert), levels = 1:3, labels = c("Bottom Tertile",
+                                                                                "Middle Tertile",
+                                                                                "Top Tertile")))
+```
+
+Check recodes.
+
+``` r
+twitter_tbl %>% 
+  ggplot(aes(x = mccain_tert, y = mccain)) +
+  geom_boxplot(color = "black", fill = "firebrick") +
+  labs(x = "", y = "McCain Vote Share")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+Write out rds, SPSS and Stata.
+
+``` r
+saveRDS(twitter_tbl, "data/twitter_data.rds")
+write_sav(twitter_tbl, "data/twitter_data.sav")
+write_dta(twitter_tbl, "data/twitter_data.dta")
 ```
